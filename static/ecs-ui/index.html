@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://unpkg.com/vue@3"></script>
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
+    <title>Hello, world!</title>
+</head>
+
+<body>
+    <main class="container" id="app">
+        <article>
+            <p><span class="w-8 inline">Server status</span><b>{{serverInfo.status}}</b></p>
+            <p><span class="w-8 inline">IP</span><b>{{serverInfo.ip}}</b></p>
+            <p>
+                <a @click="handleRefresh" href="#" role="button" class="mr-1 outline">Refresh</a>
+                <a @click="handleStart" href="#" role="button" class="mr-1 ">Start</a>
+                <a @click="handleStop" href="#" role="button" class="mr-1 secondary">Stop</a>
+            </p>
+        </article>
+    </main>
+    <style>
+        .w-8 {
+            width: 8rem;
+        }
+
+        .mr-1 {
+            margin-right: 1rem;
+        }
+
+
+        .inline {
+            display: inline-block;
+        }
+    </style>
+    <script>
+        Vue.createApp({
+            data() {
+                return {
+                    serverInfo: {
+                        status: 'unknown',
+                        ip: 'unknown'
+                    }
+                }
+            },
+            methods: {
+                async handleRefresh() {
+                    console.debug('handleRefresh');
+                    this.serverInfo.status = 'loading';
+                    this.serverInfo.ip = 'loading';
+                    try {
+                        const resp = await fetch('/api/ecs/info');
+                        if (!resp.ok) {
+                            throw new Error(resp.statusText);
+                            return;
+                        }
+                        const data = await resp.json();
+                        this.serverInfo.status = data.status;
+                        this.serverInfo.ip = data.ip;
+                    } catch (error) {
+                        console.error(error);
+                        this.serverInfo.status = 'error';
+                        this.serverInfo.ip = 'error';
+                    }
+                },
+                async handleStart() {
+                    console.debug('handleStart');
+                    try {
+                        const resp = await fetch('/api/ecs/start', {
+                            method: 'POST'
+                        });
+                        if (!resp.ok) {
+                            throw new Error(resp.statusText);
+                            return;
+                        }
+                        const data = await resp.json();
+                        console.log(data.msg);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                },
+                async handleStop() {
+                    console.debug('handleStop');
+                    try {
+                        const resp = await fetch('/api/ecs/stop', {
+                            method: 'POST'
+                        });
+                        if (!resp.ok) {
+                            throw new Error(resp.statusText);
+                            return;
+                        }
+                        const data = await resp.json();
+                        console.log(data.msg);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+
+            }
+        }).mount('#app')
+    </script>
+</body>
+
+</html>
